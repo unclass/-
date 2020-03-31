@@ -1,0 +1,346 @@
+#include<stdio.h>
+#include<malloc.h>
+#include<stdlib.h>
+#include<conio.h>
+#include<ctype.h>
+#define Esc 27
+#define NULL 0
+#define MAXSIZE sizeof(struct student)
+struct student
+{
+	int num;							    //学号
+	char name[20];						//姓名
+	char sex[4];                         //性别
+	float dsScore;						//数据结构
+	float eng;							//大学英语
+	float math;							//高等数学
+	float sum;							//总成绩
+	float avg;							//平均成绩
+	int order;							//名次
+	struct student *next;
+};
+int n;									//全局变量，统计学生记录的个数
+struct student *InputStu();
+void OutputStu(struct student *head);
+struct student *AppendStu(struct student *head, struct student *stud);
+struct student *SearchStu(struct student *head, int num);
+struct student *UpdateStu(struct student *head, int num);
+struct student *order(struct student *head);
+float Statistic(struct student *p);
+float Count(struct student *p);
+
+//创建链表，输入学生信息
+struct student *InputStu()
+{
+	struct student *head;
+	struct student *pl;
+	pl = (struct student*) malloc(MAXSIZE);
+	printf("\n\n\t请输入学生的信息:  \n");
+	printf("\t输入格式为：(每输入一项回车，以学号为0退出)\n");
+	printf("\t请输入学生学号:");
+	scanf("%d", &pl->num);
+	printf("\t请输入学生姓名:");
+	scanf("%s", &pl->name);
+	printf("\t请输入学生性别:");
+	scanf("%s", &pl->sex);
+	printf("\n");
+	printf("\t请输入数据结构成绩:");
+	scanf("%f", &pl->dsScore);
+	printf("\t请输入大学英语成绩:");
+	scanf("%f", &pl->eng);
+	printf("\t请输入高等数学成绩:");
+	scanf("%f", &pl->math);
+	printf("\n");
+	head = NULL;
+	while (pl->num != 0)
+	{
+		pl->sum = Count(pl);
+		pl->avg = Statistic(pl);			//求pl的平均值
+		head = AppendStu(head, pl);			//创建链表
+		pl = (struct student*)malloc(MAXSIZE);
+		printf("\n\t如果你想结束输入，请输入 0 \n\n");
+		printf("\t请输入学号:");
+		scanf("%d", &pl->num);
+		if (pl->num == NULL)				//控制是否退出
+			goto out;
+		printf("\t请输入学生姓名:");
+		scanf("%s", &pl->name);
+		printf("\t请输入学生性别:");
+		scanf("%s", &pl->sex);
+		printf("\n");
+		printf("\t请输入数据结构成绩:");
+		scanf("%f", &pl->dsScore);
+		printf("\t请输入大学英语成绩:");
+		scanf("%f", &pl->eng);
+		printf("\t请输入高等数学成绩:");
+		scanf("%f", &pl->math);
+		printf("\n");
+	}
+	out: return (head);
+}
+
+//输出链表
+void OutputStu(struct student *head)
+{
+	struct student *p;
+	p = head;
+	printf("\n\n\n****************学生成绩信息表****************\n\n");
+	printf("\n学号  \t\t姓名   \t性别       数据结构  大学英语  高等数学  总成绩   平均分  学生名次\n");
+	if (head != NULL)
+		do
+		{
+			printf("%-10d", p->num);
+			printf("\t%-10s", p->name);
+			printf("%-10s", p->sex);
+			printf("%-8.2f", p->dsScore);
+			printf("  %-8.2f", p->eng);
+			printf("  %-8.2f", p->math);
+			printf(" %-8.2f", p->sum);
+			printf(" %-8.2f", p->avg);
+			printf("    %-3d\n", p->order);
+			p = p->next;
+		} while (p != NULL);
+}
+
+//添加学生信息
+struct student *AppendStu(struct student *head, struct student *stud)
+{
+	struct student *p0, *p1, *p2;
+	p1 = head;
+	p0 = stud;
+	if (head == NULL)				//空链表时返回
+	{
+		head = p0;
+		p0->next = NULL;
+	}
+	else
+	{
+		while ((p0->avg <p1->avg) && (p1->next != NULL))
+		{
+			p2 = p1;
+			p1 = p1->next;
+		}
+		if (p0->avg >= p1->avg)
+		{
+			if (p1 == head)				//链表头插入
+			{
+				p0->next = p1;
+				head->next = p0;
+			}
+			else						//链表中插入
+			{
+				p2->next = p0;
+				p0->next = p1;
+			}
+		}
+		else							//链表尾部插入
+		{
+			p1->next = p0;
+			p0->next = NULL;
+		}
+	}
+	n = n + 1;
+	p0->order = 0;		//初始化名次
+	return(head);
+}
+
+//根据输入的各科成绩来计算平均分
+float Count(struct student *p)
+{
+	p->sum = p->dsScore + p->eng + p->math;
+	return p->sum;
+}
+
+//根据输入的各科成绩来计算平均分
+float Statistic(struct student *p)
+{
+	p->avg = (p->dsScore + p->eng + p->math) / 3;
+	return p->avg;
+}
+
+
+//根据学生平均分来排名
+struct student *order(struct student *head)
+{
+	struct student *p;
+	int i = 1;
+	p = head;
+	while (p != NULL)
+	{
+		p->order = i;
+		i++;
+		p = p->next;
+	}
+	return(head);
+}
+
+//根据学生学号来查找学生信息
+struct student *SearchStu(struct student *head, int num)
+{
+	struct student *p1, *p2;
+	p1 = head;
+	if (head == NULL)		//空链表时返回
+	{
+		printf("\n\t链表为空！\n");
+		return(head);
+	}
+	else
+	{
+		while (num != p1->num &&p1->next != NULL)
+		{
+			p2 = p1;
+			p1 = p1->next;
+		}
+		if (num == p1->num)							//找到相应的学号则显示
+		{
+			printf("\t你查找的学生信息为：\n");
+			printf("\t学号为：%d\n", p1->num);
+			printf("\t姓名为：%s\n", p1->name);
+			printf("\t性别为：%s\n", p1->sex);
+			printf("\t数据结构成绩为：%.2f\n", p1->dsScore);
+			printf("\t大学英语成绩为：%.2f\n", p1->eng);
+			printf("\t高等数学成绩为：%.2f\n", p1->math);
+			printf("\t总成绩为：%.2f\n", p1->sum);
+			printf("\t平均成绩为：%.2f\n", p1->avg);
+			printf("\t学生名次为：%d\n", p1->order);
+		}
+		else						
+			printf("\t你输入的学号不在链表内！\n");       //	学号不在链表内
+	}
+	return(head);
+}
+
+//根据学生学号来修改学生的信息
+struct student *UpdateStu(struct student *head, int num)
+{
+	struct student *p1, *p2;
+	struct student *stude;
+	stude = (struct student*)malloc(MAXSIZE);
+	p1 = head;
+	if (head == NULL)				//链表为空时不能改变信息
+	{
+		printf("\n\t链表为空！\n");
+		return(head);
+
+	}
+	else
+	{
+		while (num != p1->num &&p1->next != NULL)
+		{
+			p2 = p1;
+			p1 = p1->next;
+		}
+		if (num == p1->num)						  //	找到相应的学号时
+		{
+			if (p1 == head)						//表头删除
+				head = p1->next;
+			else								//表中和表尾删除
+				p2->next = p1->next;
+			printf("\t你要修改的学号为%d的先前信息为：\n", num);
+			printf("\t学号为：%d\n", p1->num);
+			printf("\t姓名为：%s\n", p1->name);
+			printf("\t性别为：%s\n", p1->sex);
+			printf("\n");
+			printf("\t数据结构成绩为：%.2f\n", p1->dsScore);
+			printf("\t大学英语成绩为：%.2f\n", p1->eng);
+			printf("\t高等数学成绩为：%.2f\n", p1->math);
+			printf("\t总成绩为：%.2f\n", p1->sum);
+			printf("\t平均成绩为：%.2f\n", p1->avg);
+			printf("\t学生名次为：%d\n", p1->order);
+			printf("\n");
+			printf("\t请输入你要改变的成绩：（格式为：每输入一次回车）\n");
+			printf("\t请输入数据结构成绩：");
+			scanf("%f", &p1->dsScore);
+			printf("\t请输入大学英语成绩：");
+			scanf("%f", &p1->eng);
+			printf("\t请输入高等数学成绩：");
+			scanf("%f", &p1->math);
+			p1->dsScore = stude->dsScore;
+			p1->eng = stude->eng;
+			p1->math = stude->math;
+			p1->sum = Count(p1);
+			p1->avg = Statistic(p1);
+			head = AppendStu(head, p1);
+			n = n - 1;
+		}
+		else					//找不到学号时
+			printf("\t你要修改的学号不在链表内！\n");
+	}
+	return(head);
+}
+
+//主函数
+int main()
+{
+	struct student *head, *stu;
+	int Delete_num;
+	int SearchStu_num;
+	int UpdateStu_num;
+	char ckey = 'a';
+	int istate = 0;
+	int index;
+	printf("\n 请输入学生记录个数n=");
+	scanf("%d", &n);
+	head = InputStu();
+	head = order(head);
+	while (1)
+	{
+		system("cls");//清屏
+		printf("\n**********************学生信息管理主菜单**********************\n");
+		printf("\n\t	   1.显示学生信息	            \n");
+		printf("\t	   2.查找学生信息     \n");
+		printf("\t	   3.修改学生信息     \n");
+		printf("\t	   4.添加学生信息           \n");
+		printf("\t	   5.退出                     \n");
+		printf("\n**************************************************************\n");
+		scanf("%d", &index);
+		switch (index) {
+		case 1:
+			system("cls");
+			OutputStu(head);
+			system("pause");
+			break;
+		case 2:
+			system("cls");
+			printf("  \n\t请输入你要查找的学生学号：");
+			scanf("%d", &SearchStu_num);
+			head = SearchStu(head, SearchStu_num);
+			system("pause");
+			break;
+		case 3:
+			system("cls");
+			printf("  \n\t请输入你要修改学生信息的学号：");
+			scanf("%d", &UpdateStu_num);
+			head = UpdateStu(head, UpdateStu_num);
+			system("pause");
+			break;
+		case 4:
+			system("cls");
+			printf("  \n\t请输入你要添加的学生信息：\n\n");
+			stu = (struct student*)malloc(MAXSIZE);
+			printf("\t请输入学生信息，格式为：（每输入一项回车）\n");
+			printf("\t请输入学生学号：");
+			scanf("%d", &stu->num);
+			printf("\t请输入学生姓名：");
+			scanf("%s", &stu->name);
+			printf("\t请输入学生性别：");
+			scanf("%s", &stu->sex);
+			printf("\n");
+			printf("\t请输入数据结构成绩：");
+			scanf("%f", &stu->dsScore);
+			printf("\t请输入大学英语成绩：");
+			scanf("%f", &stu->eng);
+			printf("\t请输入高等数学成绩：");
+			scanf("%f", &stu->math);
+			printf("\n");
+			stu->sum = Count(stu);
+			stu->avg = Statistic(stu);
+			head = AppendStu(head, stu);
+			break;
+		case 5:
+			return 0;
+		default:
+			printf("\n输入有误,请重新输入! \n");
+		}
+	}
+}
